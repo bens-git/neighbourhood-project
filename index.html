@@ -24,8 +24,6 @@
     <script src="js/jQuery.js"></script>
     <script src="bootstrap/js/bootstrap.js"></script>
     <script src="js/knockout-3.4.2.js"></script>
-    <script src="js/knockout.mapping.js"></script>
-
     <script src="js/index.js"></script>
 </head>
 
@@ -46,10 +44,10 @@
                         optionsText: 'radiusText',
                         optionsValue: 'radiusValue',
                         value: selectedRadius"></select>
-                        <input id="filter" class='btn btn-default btn-sm' type="button" value="Filter Near Address">
-                        <input id="reset" class='btn btn-default btn-sm' type="button" value="Show All">
+                        <input id="filter"  data-bind="click: searchRadius" class='btn btn-default btn-sm' type="button" value="Filter Near Address">
+                        <input id="reset" data-bind="click: resetMarkers" class='btn btn-default btn-sm' type="button" value="Show All">
                         <li class="list-group-item h4">Locations</li>
-                        <!-- ko foreach: locations -->
+                        <!-- ko foreach: locationsFiltered -->
                         <input class='btn btn-default btn-sm' data-bind="value: title, click: $parent.showAjaxInfo" type="button">
                         <!-- /ko -->
                     </div>
@@ -59,9 +57,7 @@
                 <div class='row'>
                     <div class="col-sm-12 map">
                         <div class="google-map-canvas" id="map"></div>
-                        <!-- ko foreach: locations -->
-                        <span data-bind="marker: {location: $data}"></span>
-                        <!-- /ko -->
+                        
                     </div>
                 </div>
             </div>
