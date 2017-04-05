@@ -6,10 +6,11 @@ ko.bindingHandlers.marker = {
         var map = bindingContext.$parent.mapControl;
         var bounds = bindingContext.$parent.boundsControl;
         var location = valueAccessor().location;
-        var latLng = new google.maps.LatLng(location.lat(), location.lng());
+        var latLng = new google.maps.LatLng(location.lat, location.lng);
+
         // Style the markers a bit. This will be our listing marker icon.
         var markerImage = new google.maps.MarkerImage(
-            'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + location.markerColor() +
+            'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + location.markerColor +
             '|40|_|%E2%80%A2',
             new google.maps.Size(21, 34),
             new google.maps.Point(0, 0),
@@ -20,7 +21,7 @@ ko.bindingHandlers.marker = {
             position: latLng,
             map: map,
             icon: markerImage,
-            title: location.title()
+            title: location.title
         });
 
         // Auto Center
@@ -62,7 +63,7 @@ function viewModel() {
     var self = this;
 
 
-    var jsLocations = [{
+    self.initialLocations = ko.observableArray([{
         title: 'Waterford Black Bridge',
         code: 'OU0A4F',
         lat: 42.93262,
@@ -111,10 +112,7 @@ function viewModel() {
         lng: -80.29923,
         markerColor: '0091ff'
 
-    }];
-
-self.initialLocations = ko.mapping.fromJS(jsLocations);
-
+    }]);
 
     //1.create map
     var mapOptions = {
@@ -129,6 +127,7 @@ self.initialLocations = ko.mapping.fromJS(jsLocations);
     this.bounds = new google.maps.LatLngBounds();
 
     document.getElementById("filter").addEventListener("click", function() {
+
         self.searchRadius();
     });
 
@@ -161,20 +160,18 @@ self.initialLocations = ko.mapping.fromJS(jsLocations);
         self.locations.removeAll();
 
         self.initialLocations().forEach(function(location) {
-            location.markerColor('0091ff');
-           // self.locations.push(location);
+            location.markerColor = '0091ff';
+            self.locations.push(location);
         });
     }
 
     this.searchRadius = function() {
-        if (self.searchAddress() == '') {
-            alert('Please enter an address!');
-            return false;
-        }
+
         console.log(self.selectedRadius());
 
         geocoder.geocode({
             address: self.searchAddress(),
+            componentRestrictions: { locality: 'Ontario' }
         }, function(results, status) {
             if (status == google.maps.GeocoderStatus.OK) {
                 var latLng = results[0].geometry.location;
@@ -196,21 +193,19 @@ self.initialLocations = ko.mapping.fromJS(jsLocations);
 
                 // Center of map
                 // 
-                
+                map.panTo(latLng);
+                map.setZoom(15);
                 self.locations.removeAll();
 
                 self.initialLocations().forEach(function(location) {
-                    var center = new google.maps.LatLng(location.lat(), location.lng());
+                    var center = new google.maps.LatLng(location.lat, location.lng);
                     var distance = google.maps.geometry.spherical.computeDistanceBetween(center, latLng);
                     if (distance < self.selectedRadius()) {
-                        location.markerColor('f44242');
+                        location.markerColor = 'f44242';
                         self.locations.push(location);
 
                     }
                 });
-
-                map.panTo(latLng);
-                map.setZoom(14);
 
 
 
@@ -243,25 +238,23 @@ self.initialLocations = ko.mapping.fromJS(jsLocations);
 
     this.ajaxInfoHeader = ko.observable();
 
-    this.cacheInfo = ko.observable();
+this.cacheInfo = ko.observable();
 
-    self.showAjaxInfo = function(value) {
+self.showAjaxInfo= function(value) {
 
         $.ajax({
-            url: 'http://www.opencaching.us/okapi/services/caches/geocache?cache_code=' + value.code() + '&consumer_key=Ls73uWXY9TFdQ8CKqJsZ&fields=code|name|location|type|status|url|description',
+            url: 'http://www.opencaching.us/okapi/services/caches/geocache?cache_code='+value.code+'&consumer_key=Ls73uWXY9TFdQ8CKqJsZ&fields=code|name|location|type|status|url|description', 
             type: 'GET',
-            success: function(data) {
+            success: function(data) {                        
                 self.cacheInfo(data);
             },
             error: function(req, status, error) {
-                self.cacheInfo('opencaching.us Not Responding.');
+                    self.cacheInfo('opencaching.us Not Responding.');
             },
         });
 
-        self.ajaxInfoHeader(value.title());
-        value.markerColor('f44242');
-
-    };
+    self.ajaxInfoHeader(value.title);
+};
 };
 
 
