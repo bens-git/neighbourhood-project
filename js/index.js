@@ -1,12 +1,19 @@
     /**
-             * Error callback for GMap API request
-             */
-            self.mapError = function() {
-                $('#warning').html('<div class="alert alert-danger fade in">Unable to load google Map!</div>');
-            };
+     * Error callback for GMap API request
+     */
+    self.mapError = function() {
+        $('#warning').html('<div class="alert alert-danger fade in">Unable to load google Map!</div>');
+    };
 
 
- function initMap() {
+
+    function initMap() {
+        function makeContent(title) {
+            var html = '<div">' + title + '</div>';
+            return html;
+        }
+
+            var infoWindow = new google.maps.InfoWindow();
 
         Location = function(title, lat, lng, code, map, bounds, parent) {
             var self = this
@@ -14,7 +21,7 @@
             this.lat = lat;
             this.lng = lng;
             this.code = code;
-            this.map = map;
+           this.map = map;
             self.Parent = ko.observable(parent);
             var marker;
             var latLng = new google.maps.LatLng(lat, lng);
@@ -22,33 +29,30 @@
             marker = new google.maps.Marker({
                 position: latLng,
                 map: map,
-                title: title
+                title: title,
+                animation: google.maps.Animation.DROP,
+                content: makeContent()
             });
+
+
 
             marker.addListener('click', function() {
-                self.openInfoWindow(map, marker);
-                //self.Parent.showAjaxInfo();
-
+                map.setCenter(marker.getPosition());
+                parent.showAjaxInfo(self);
+                infoWindow.setContent(this.title);
+                infoWindow.open(map, this)
             });
 
-            self.openInfoWindow = function(map, marker) {
-                var contentString = '<div">' + marker.getTitle() + '</div>';
-                if (this.infowindow) {
-                    this.infowindow.close();
-                };
-                this.infowindow = new google.maps.InfoWindow({
-                    content: contentString,
-                });
-                map.setCenter(marker.getPosition());
-                this.infowindow.open(map, marker);
-            }
 
             this.highlight = ko.observable(true);
             this.highlight.subscribe(function(currentState) {
                 if (currentState) {
                     marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+
                 } else {
                     marker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
+                    marker.setAnimation(null);
                 }
             });
             this.highlight(false);
@@ -90,7 +94,7 @@
                 new Location('Waterford Deer Park Web Cam', 42.93770, -80.29018, 'OU0958', self.map, self.bounds, self),
                 new Location("Three's Company", 42.84870, -80.28760, 'OU097F', self.map, self.bounds, self),
                 new Location('Historic tour of Simcoe Intercache', 42.83505, -80.30282, 'OU0942', self.map, self.bounds, self),
-                new Location('Downtown Parking BIT Cache', 42.83568, -80.30418, 'OU0923', self.map, self.bounds),
+                new Location('Downtown Parking BIT Cache', 42.83568, -80.30418, 'OU0923', self.map, self.bounds, self),
                 new Location("Simcoe's Carillon Tower", 42.84122, -80.30535, 'OU0A2A', self.map, self.bounds, self),
                 new Location('HNAG WWFM XIV / Introduction to Geocaching 2017', 42.82895, -80.29923, 'OU0A6C', self.map, self.bounds, self),
             ]);
@@ -206,6 +210,7 @@
             //ajax call
             self.ajaxError = ko.observable('');
             self.showAjaxInfo = function(value) {
+                console.log(value);
                 self.ajaxError('');
                 self.cacheInfo([]);
                 $.ajax({
